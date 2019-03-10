@@ -9,6 +9,7 @@
 
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TextInput, Button } from 'react-native';
+import TodoList   from './components/TodoList' ;
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
@@ -41,8 +42,7 @@ export default class App extends Component {
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>{JSON.stringify(this.state.todoList)}</Text>
-        <Text style={styles.welcome}>{JSON.stringify(this.state.todoItem)}</Text>
+        <TodoList item=  {this.state.todoList}></TodoList>
         <TextInput
           style={{ height: 40 }}
           placeholder="todo에 입력을 해보세요!"
