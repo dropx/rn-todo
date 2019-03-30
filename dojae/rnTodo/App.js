@@ -5,89 +5,141 @@
  * @format
  * @flow
  * @lint-ignore-every XPLATJSCOPYRIGHT1
- * 
+ *
  */
 
-import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, TextInput, Button, FlatList } from 'react-native';
+import React, { Component } from "react";
+import {
+  Platform,
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Button,
+  FlatList
+} from "react-native";
 
 const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
+  ios: "Press Cmd+R to reload,\n" + "Cmd+D or shake for dev menu",
   android:
-    'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
+    "Double tap R on your keyboard to reload,\n" +
+    "Shake or press menu button for dev menu"
 });
 
-// 유저가 입력된 TODO항목은 리스트로 출력된다.
-// Flat list에 contents, createAt, isDone을 출력한다.
-
-
 export default class App extends Component {
-
   //todoItem과 todoList를 state 내에서 관리한다.
-  state = { todoList: [], todoItem: { id: undefined, contents: 'new', createAt: undefined, isDone: false } };
+  state = {
+    todoList: [],
+    todoItemInput: ""
+  };
 
-  // todoItem에 대한 내용을 입력한다.
-  inputTodo(contents) {
-    this.setState({ todoItem: { id: this.state.todoItem.id, contents, createAt: this.state.todoItem.createAt, isDone: this.state.todoItem.isDone } })
+  textInputRef;
+
+  // 입력할 todo item 내용을 업데이트한다.
+  updateTodoItemInput(todoItemInput) {
+    this.setState({
+      ...this.state,
+      todoItemInput
+    });
   }
 
-  //todoItem을 todoList에 추가한다. 
-  addTodo() {
-    const todoItem = { ...this.state.todoItem }
+  //todoItem을 todoList에 추가한다.
+  addTodoItem() {
+    const todoItem = {
+      id: Date.now(),
+      createAt: new Date(),
+      updateAt: new Date(),
+      contents: this.state.todoItemInput
+    };
 
-    todoItem.id = Date.now();
-    todoItem.key = todoItem.id;
-    todoItem.createAt = new Date();
-    this.setState({ todoList: this.state.todoList.concat(todoItem) });
+    this.setState({
+      todoItemInput: "",
+      todoList: this.state.todoList.concat(todoItem)
+    });
   }
 
-  //  isDone에따라 check/uncheck로 변경된다.
-  nextArrayState (prevArray, item, itemIndex) {
-    return [...prevArray.slice(0, itemIndex), item, ...prevArray.slice(itemIndex + 1)]
-  }
   toggleDone(id) {
-    const itemIndex = this.state.todoList.findIndex((item) => item.id == id)
+    const itemIndex = this.state.todoList.findIndex(item => item.id == id);
     if (itemIndex === -1) return;
     const todoList = this.state.todoList;
-    item = todoList[itemIndex]
+    const item = todoList[itemIndex];
     item.isDone = !item.isDone;
-    this.setState({ todoList: this.nextArrayState(todoList, item, itemIndex)});
+    item.updateAt = new Date();
+    this.setState({
+      ...this.state,
+      todoList: [
+        ...todoList.slice(0, itemIndex),
+        item,
+        ...todoList.slice(itemIndex + 1)
+      ]
+    });
   }
 
+  deleteTodoItem(id) {
+    const itemIndex = this.state.todoList.findIndex(item => item.id == id);
+    if (itemIndex === -1) return;
+    const todoList = this.state.todoList;
+    const nextStateTodoList = [
+      ...todoList.slice(0, itemIndex),
+      ...todoList.slice(itemIndex + 1)
+    ];
+    this.setState({
+      ...this.state,
+      todoList: nextStateTodoList
+    });
+  }
 
-  renderTodoItem = ({ item }) =>
-    <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center' }}>
-      <Text>{item.contents}</Text>
+  renderTodoItem = (item, index) => (
+    <View
+      key={index}
+      style={{
+        flex: 1,
+        flexDirection: "row",
+        justifyContent: "center"
+      }}
+    >
       <Button
         onPress={() => this.toggleDone(item.id)}
         title={item.isDone == true ? "☑️" : "⬜"} // check: ☑, uncheck: ⬜
         color="#841584"
       />
+      <Text>{item.contents}</Text>
+      <Button
+        onPress={() => this.deleteTodoItem(item.id)}
+        title="[-]" // check: ☑, uncheck: ⬜
+        color="#841584"
+      />
     </View>
-
+  );
 
   render() {
     return (
       <View style={styles.container}>
-        <Text style={styles.welcome}>{JSON.stringify(this.state)}</Text>
-        <FlatList
-          data={this.state.todoList}
-          renderItem={this.renderTodoItem}
-        />
-        <TextInput
-          style={{ height: 40 }}
-          placeholder="todo에 입력을 해보세요!"
-          onChangeText={(text) => this.inputTodo(text)}
-        />
-        <Button
-          onPress={this.addTodo.bind(this)}
-          title="입력3"
-          color="#841584"
-          accessibilityLabel="Learn more about this purple button"
-        />
-        <Text style={styles.instructions}>To get started, edit App.js</Text>
-        <Text style={styles.instructions}>{instructions}</Text>
+        {/* input view */}
+        <View style={styles.todoItemInputView}>
+          <TextInput
+            style={styles.todoItemTextInput}
+            ref={instance => {
+              this.textInputRef = instance;
+            }}
+            placeholder="todo에 입력을 해보세요!"
+            onChangeText={text => this.updateTodoItemInput(text)}
+            value={this.state.todoItemInput}
+          />
+          <View style={styles.todoItemAddButton}>
+            <Button
+              onPress={this.addTodoItem.bind(this)}
+              title="+"
+              color="#841584"
+              accessibilityLabel="Learn more about this purple button"
+              disabled={!this.state.todoItemInput}
+            />
+          </View>
+        </View>
+        {/* todoList */}
+        <View style={styles.todoList}>
+          {this.state.todoList.map(this.renderTodoItem)}
+        </View>
       </View>
     );
   }
@@ -96,18 +148,39 @@ export default class App extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#F5FCFF",
+    paddingTop: 50,
+    paddingHorizontal: 10
   },
-  welcome: {
+
+  todoItemInputView: {
+    flex: 1,
+    display: "flex",
+    width: "100%",
+    flexDirection: "row"
+  },
+  todoItemTextInput: {
+    flex: 4,
     fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
+    padding: 10,
+    borderColor: "#999",
+    borderWidth: 1,
+    backgroundColor: "white",
+    marginRight: 10
   },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
+  todoItemAddButton: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    borderColor: "#999",
+    borderWidth: 1
   },
+
+  todoList: {
+    backgroundColor: "red",
+    display: "flex",
+    flex: 5
+  }
 });
