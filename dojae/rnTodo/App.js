@@ -89,26 +89,31 @@ export default class App extends Component {
     });
   }
 
-  renderTodoItem = (item, index) => (
+  renderTodoItem = (item) => (
     <View
-      key={index}
-      style={{
-        flex: 1,
-        flexDirection: "row",
-        justifyContent: "center"
-      }}
+      key={item.id}
+      style={styles.todoItem}
     >
-      <Button
-        onPress={() => this.toggleDone(item.id)}
-        title={item.isDone == true ? "☑️" : "⬜"} // check: ☑, uncheck: ⬜
-        color="#841584"
-      />
-      <Text>{item.contents}</Text>
-      <Button
-        onPress={() => this.deleteTodoItem(item.id)}
-        title="[-]" // check: ☑, uncheck: ⬜
-        color="#841584"
-      />
+      <View style={styles.todoItemToggleButton}>
+        <Button
+          onPress={() => this.toggleDone(item.id)}
+          title={item.isDone == true ? "☑️" : "⬜"} // check: ☑, uncheck: ⬜
+          color="#841584"
+        />
+      </View>
+      <View style={styles.todoItemContents}>
+        <Text 
+        style={styles.todoItemContentsText}
+        ellipsizeMode="tail" 
+        numberOfLines={1}>{item.contents}</Text>
+      </View>
+      <View style={styles.todoItemDeleteButton}>
+        <Button
+          onPress={() => this.deleteTodoItem(item.id)}
+          title="[-]" // check: ☑, uncheck: ⬜
+          color="#841584"
+        />
+      </View>
     </View>
   );
 
@@ -136,9 +141,18 @@ export default class App extends Component {
             />
           </View>
         </View>
-        {/* todoList */}
+        {/* todoList FlatList 컴포넌트로 만들기 */}
         <View style={styles.todoList}>
-          {this.state.todoList.map(this.renderTodoItem)}
+          {/*this.state.todoList.map(this.renderTodoItem)*/}
+          <FlatList
+            data={this.state.todoList.sort((a, b) => {
+              if(a.createAt < b.createAt) return 1;
+              if(a.createAt > b.createAt) return -1;
+              if(a.createAt === b.createAt) return 0;
+            })}
+            renderItem={({item}) => this.renderTodoItem(item)}
+            keyExtractor={(item) => String(item.id)}
+          />
         </View>
       </View>
     );
@@ -151,7 +165,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F5FCFF",
-    paddingTop: 50,
+    paddingVertical: 50,
     paddingHorizontal: 10
   },
 
@@ -163,7 +177,7 @@ const styles = StyleSheet.create({
   },
   todoItemTextInput: {
     flex: 4,
-    fontSize: 20,
+    fontSize: 18,
     padding: 10,
     borderColor: "#999",
     borderWidth: 1,
@@ -177,10 +191,29 @@ const styles = StyleSheet.create({
     borderColor: "#999",
     borderWidth: 1
   },
-
   todoList: {
-    backgroundColor: "red",
+    marginTop: 10,
+    width: "100%",
     display: "flex",
-    flex: 5
+    flex: 9
+  },
+  todoItem: {
+    width: "100%",
+    flexDirection: "row",
+    alignItems: "center", 
+    justifyContent: "space-around",
+    marginVertical: 5
+  },
+  todoItemToggleButton: {
+    flex: 1
+  },
+  todoItemContents: {
+    flex: 4
+  },
+  todoItemContentsText: {
+    fontSize: 15
+  },
+  todoItemDeleteButton: {
+    flex: 1
   }
 });
