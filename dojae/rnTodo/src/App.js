@@ -19,13 +19,21 @@ import {
   FlatList,
 } from 'react-native';
 
+import TodoItemInput from './components/TodoItemInput';
+
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
-  android:
-    'Double tap R on your keyboard to reload,\n' +
+  android: 'Double tap R on your keyboard to reload,\n' +
     'Shake or press menu button for dev menu',
 });
 
+
+/**
+ * 컴포넌트 분리
+ * - input
+ * - list
+ * - list item
+ */
 export default class App extends Component {
   //todoItem과 todoList를 state 내에서 관리한다.
   state = {
@@ -44,16 +52,15 @@ export default class App extends Component {
   }
 
   //todoItem을 todoList에 추가한다.
-  addTodoItem() {
+  addTodoItem(inputText) {
     const todoItem = {
       id: Date.now(),
       createAt: new Date(),
       updateAt: new Date(),
-      contents: this.state.todoItemInput,
+      contents: inputText,
     };
 
     this.setState({
-      todoItemInput: '',
       todoList: this.state.todoList.concat(todoItem),
     });
   }
@@ -120,26 +127,7 @@ export default class App extends Component {
     return (
       <View style={styles.container}>
         {/* input view */}
-        <View style={styles.todoItemInputView}>
-          <TextInput
-            style={styles.todoItemTextInput}
-            ref={instance => {
-              this.textInputRef = instance;
-            }}
-            placeholder="todo에 입력을 해보세요!"
-            onChangeText={text => this.updateTodoItemInput(text)}
-            value={this.state.todoItemInput}
-          />
-          <View style={styles.todoItemAddButton}>
-            <Button
-              onPress={this.addTodoItem.bind(this)}
-              title="+"
-              color="#841584"
-              accessibilityLabel="Learn more about this purple button"
-              disabled={!this.state.todoItemInput}
-            />
-          </View>
-        </View>
+        <TodoItemInput addTodoItem={this.addTodoItem.bind(this)} />
         {/* todoList FlatList 컴포넌트로 만들기 */}
         <View style={styles.todoList}>
           {/*this.state.todoList.map(this.renderTodoItem)*/}
